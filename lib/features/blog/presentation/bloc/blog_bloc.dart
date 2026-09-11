@@ -97,16 +97,21 @@ class BlogBloc extends Bloc<BlogEvent, BlogState> {
 
   //deleteBlog
   void _onDeleteBlog(BlogDeletEvent event, Emitter<BlogState> emit) async {
+    final currentState = state;
     final response = await _deleteBlog(
       DeleteBlogParams(blogId: event.blogId, imageUrl: event.imageUrl),
     );
 
     response.fold(
-      (left) {
-        emit(BlogFailure(errorMessage: left.message));
-      },
-      (right) {
-        emit(BlogUploadSuccess());
+      (failure) => emit(BlogFailure(errorMessage: failure.message)),
+      (_) {
+        if (currentState is BlogDisplaySuccess) {
+          final updatedBlogs = currentState.blogs
+              .where((blog) => blog.id != event.blogId)
+              .toList();
+
+          emit(BlogDisplaySuccess(blogs: updatedBlogs));
+        }
       },
     );
   }
