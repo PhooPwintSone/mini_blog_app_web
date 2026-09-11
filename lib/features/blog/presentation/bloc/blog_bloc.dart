@@ -1,9 +1,8 @@
-import 'dart:developer';
-
 import 'package:blog_app/features/blog/domain/entities/blog.dart';
 import 'package:blog_app/features/blog/domain/usecases/delete_blog.dart';
 import 'package:blog_app/features/blog/domain/usecases/edit_blog.dart';
 import 'package:blog_app/features/blog/domain/usecases/get_all_blogs.dart';
+import 'package:blog_app/features/blog/domain/usecases/update_reaction.dart';
 import 'package:blog_app/features/blog/domain/usecases/upload_blog_usecase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,23 +12,29 @@ part 'blog_event.dart';
 part 'blog_state.dart';
 
 class BlogBloc extends Bloc<BlogEvent, BlogState> {
+  //---- Blog Section ----//
   final UploadBlog _uploadBlog;
   final GetAllBlogs _getAllBlogs;
   final DeleteBlog _deleteBlog;
   final EditBlog _editBlog;
-
+  // Related to Pagination
   int _currentPage = 0;
   bool _isFetching = false;
+
+  //---- Reactions Section ----//
+  final UpdateReaction _updateReaction;
 
   BlogBloc({
     required this._uploadBlog,
     required this._getAllBlogs,
     required this._deleteBlog,
     required this._editBlog,
+    required this._updateReaction,
   }) : super(BlogInitial()) {
     // //loading state
-    // on<BlogEvent>((event, emit) => emit(BlogLoading()));
+    // on<BlogEvent>((event, emit) => emit(BlogLoading()) );
 
+    //---- Blog Section ----//
     //upload Blog
     on<BlogUpload>(_onBlogUpload);
 
@@ -44,8 +49,12 @@ class BlogBloc extends Bloc<BlogEvent, BlogState> {
 
     //load more blogs
     on<BlogLoadMoreBlogs>(_onLoadMoreBlogs);
+
+    //---- Reactions Section ----//
+    on<BlogUpdateReaction>(_onUpdateReaction);
   }
 
+  //---- Blog Section ----//
   //upload Blog
   void _onBlogUpload(BlogUpload event, Emitter<BlogState> emit) async {
     final response = await _uploadBlog(
@@ -67,7 +76,7 @@ class BlogBloc extends Bloc<BlogEvent, BlogState> {
   //get all blogs
   void _ongetAllBlogs(BlogGetAllBlogs event, Emitter<BlogState> emit) async {
     _currentPage = 0;
-    emit(BlogLoading());
+    // emit(BlogLoading());
     final response = await _getAllBlogs(GetAllBlogsParams(page: _currentPage));
 
     response.fold(
@@ -125,7 +134,6 @@ class BlogBloc extends Bloc<BlogEvent, BlogState> {
     final currentState = state as BlogDisplaySuccess;
 
     if (currentState.hasReachedMax) {
-      log('--- TRAP 2 (BLoC): Ignored because hasReachedMax is TRUE ---');
       return;
     }
 
@@ -134,7 +142,6 @@ class BlogBloc extends Bloc<BlogEvent, BlogState> {
     emit(BlogDisplaySuccess(blogs: currentState.blogs, isLoadingMore: true));
 
     _currentPage++;
-    log('--- TRAP 3 (BLoC): Fetching Page $_currentPage from Supabase... ---');
 
     final response = await _getAllBlogs(GetAllBlogsParams(page: _currentPage));
 
@@ -154,5 +161,24 @@ class BlogBloc extends Bloc<BlogEvent, BlogState> {
         );
       },
     );
+  }
+
+  //---- Reactions Section ----//
+  void _onUpdateReaction(
+    BlogUpdateReaction event,
+    Emitter<BlogState> emit,
+  ) async {
+    final response = await _updateReaction(
+      UpdateReactionParams(
+        blogId: event.blogId,
+        userId: event.userId,
+        reactionType: event.reactionType,
+      ),
+    );
+
+    response.fold((left) => emit(BlogFailure(errorMessage: left.message)), (_) {
+      // Trigger a refresh of your blogs so the counts update
+      add(BlogGetAllBlogs());
+    });
   }
 }

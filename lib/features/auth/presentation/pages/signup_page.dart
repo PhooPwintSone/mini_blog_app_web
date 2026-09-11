@@ -49,7 +49,13 @@ class _SignupPageState extends State<SignupPage> {
           child: BlocConsumer<AuthBloc, AuthState>(
             listener: (context, state) {
               if (state is AuthFailure) {
-                showSnackBar(context, state.message.toString());
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message.toString()),
+                    backgroundColor: AppPallete.errorColor, // Make it pop!
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
               } else if (state is AuthSuccess) {
                 Navigator.pushAndRemoveUntil(
                   context,
@@ -80,17 +86,18 @@ class _SignupPageState extends State<SignupPage> {
                     const SizedBox(height: 35),
 
                     //Text field group
-                    // email
-                    AuthTextfield(
-                      hintText: "Email :",
-                      controller: emailController,
-                    ),
-                    const SizedBox(height: 25),
 
                     //Name
                     AuthTextfield(
                       hintText: "Name :",
                       controller: nameController,
+                    ),
+                    const SizedBox(height: 25),
+
+                    //Email
+                    AuthTextfield(
+                      hintText: "Email :",
+                      controller: emailController,
                     ),
                     const SizedBox(height: 25),
 

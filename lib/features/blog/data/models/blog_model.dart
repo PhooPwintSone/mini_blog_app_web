@@ -1,4 +1,6 @@
+import 'package:blog_app/features/blog/data/models/reaction_model.dart';
 import 'package:blog_app/features/blog/domain/entities/blog.dart';
+import 'package:blog_app/features/blog/domain/entities/reaction.dart';
 
 class BlogModel extends Blog {
   BlogModel({
@@ -10,6 +12,7 @@ class BlogModel extends Blog {
     required super.categories,
     required super.updatedAt,
     required super.userName,
+    super.reactions,
   });
 
   // Convert from Supabase database map to Dart Object
@@ -24,10 +27,18 @@ class BlogModel extends Blog {
       updatedAt: map['updated_at'] == null
           ? DateTime.now()
           : DateTime.parse(map['updated_at'] as String).toLocal(),
-      // 💡 FIX: Extract the name from the joined profiles table
+
       userName: map['profiles'] != null
           ? map['profiles']['name'] as String
           : 'Unknown',
+      reactions: map['blog_reactions'] != null
+          ? (map['blog_reactions'] as List<dynamic>)
+                .map(
+                  (reaction) =>
+                      ReactionModel.fromJson(reaction as Map<String, dynamic>),
+                )
+                .toList()
+          : [],
     );
   }
 
@@ -41,8 +52,6 @@ class BlogModel extends Blog {
       'image_url': imageUrl,
       'topics': categories,
       'updated_at': updatedAt.toIso8601String(),
-      // Note: We don't send userName back to the blogs table because
-      // the name actually lives in the profiles table!
     };
   }
 
@@ -54,7 +63,8 @@ class BlogModel extends Blog {
     String? imageUrl,
     List<String>? categories,
     DateTime? updatedAt,
-    String? userName, // 💡 FIX: Added userName here
+    String? userName,
+    List<Reaction>? reactions,
   }) {
     return BlogModel(
       id: id ?? this.id,
@@ -64,7 +74,8 @@ class BlogModel extends Blog {
       imageUrl: imageUrl ?? this.imageUrl,
       categories: categories ?? this.categories,
       updatedAt: updatedAt ?? this.updatedAt,
-      userName: userName ?? this.userName, // 💡 FIX: Don't hardcode to ''
+      userName: userName ?? this.userName,
+      reactions: reactions ?? this.reactions,
     );
   }
 }

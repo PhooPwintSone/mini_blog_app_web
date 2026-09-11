@@ -1,4 +1,5 @@
 import 'package:blog_app/features/blog/data/models/blog_model.dart';
+import 'package:blog_app/features/blog/data/models/reaction_model.dart';
 import 'package:image_picker/image_picker.dart';
 
 abstract interface class BlogRemoteDatasources {
@@ -23,4 +24,16 @@ abstract interface class BlogRemoteDatasources {
     required XFile image,
     required String blogId,
   });
+
+  //---- Reactions ---- //
+
+  //for update reactions
+  Future<void> updateReaction({
+    required String blogId,
+    required String userId,
+    required String reactionType,
+  });
+
+  //get all reactions
+  Future<List<ReactionModel>> getReactions(String blogId);
 }

@@ -3,6 +3,7 @@ part of 'blog_bloc.dart';
 @immutable
 sealed class BlogEvent {}
 
+//---- Blog Section ----//
 final class BlogUpload extends BlogEvent {
   final String userId;
   final String title;
@@ -51,3 +52,17 @@ final class BlogEditEvent extends BlogEvent {
 }
 
 class BlogLoadMoreBlogs extends BlogEvent {}
+
+//---- REactions Section ----//
+
+class BlogUpdateReaction extends BlogEvent {
+  final String blogId;
+  final String userId;
+  final String reactionType;
+
+  BlogUpdateReaction({
+    required this.blogId,
+    required this.userId,
+    required this.reactionType,
+  });
+}

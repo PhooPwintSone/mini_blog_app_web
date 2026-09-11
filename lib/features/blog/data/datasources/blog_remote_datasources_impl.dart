@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:blog_app/core/error/exception.dart';
 import 'package:blog_app/features/blog/data/datasources/blog_remote_datasources.dart';
 import 'package:blog_app/features/blog/data/models/blog_model.dart';
+import 'package:blog_app/features/blog/data/models/reaction_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -13,6 +14,7 @@ class BlogRemoteDatasourcesImpl implements BlogRemoteDatasources {
 
   BlogRemoteDatasourcesImpl({required this.supabaseClient});
 
+  // --- Blogs Section --- //
   //Upload whole Blog
   @override
   Future<BlogModel> uploadBlog(BlogModel blog) async {
@@ -62,10 +64,10 @@ class BlogRemoteDatasourcesImpl implements BlogRemoteDatasources {
 
       final blogs = await supabaseClient
           .from('blogs')
-          .select('*,profiles(name)')
+          .select('*,profiles(name), blog_reactions(*)')
           .order('updated_at', ascending: false)
           .range(from, to);
-
+      log('🔴 SUPABASE RAW DATA: ${blogs[0]['blog_reactions']}');
       return blogs
           .map(
             (e) =>
@@ -84,18 +86,12 @@ class BlogRemoteDatasourcesImpl implements BlogRemoteDatasources {
     required String imageUrl,
   }) async {
     try {
-      log('--- 2. DATA SOURCE: Reached Remote Data Source ---');
       final imagePath = imageUrl.split('/').last;
 
-      log('--- 3A. DATA SOURCE: Deleting from Storage... ---');
       await supabaseClient.storage.from('blog_images').remove([imagePath]);
 
-      log('--- 3B. DATA SOURCE: Deleting from Database... ---');
       await supabaseClient.from('blogs').delete().eq('id', blogId);
-
-      log('--- 3C. DATA SOURCE: Remote Deletion Complete ---');
     } catch (e) {
-      log('--- ERROR IN DATA SOURCE: $e ---');
       throw ServerException(message: e.toString());
     }
   }
@@ -122,6 +118,7 @@ class BlogRemoteDatasourcesImpl implements BlogRemoteDatasources {
     }
   }
 
+  // edid photo at add new blog page
   @override
   Future<String> uploadEditBlogImage({
     required XFile image,
@@ -145,8 +142,63 @@ class BlogRemoteDatasourcesImpl implements BlogRemoteDatasources {
             .upload(blogId, file, fileOptions: const FileOptions(upsert: true));
       }
 
-      // Return the public URL
       return supabaseClient.storage.from('blog_images').getPublicUrl(blogId);
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  // --- Reactions Section --- //
+
+  //update reactions
+  @override
+  Future<void> updateReaction({
+    required String blogId,
+    required String userId,
+    required String reactionType,
+  }) async {
+    try {
+      // 1. Check if the user already reacted with this exact type
+      final existingReaction = await supabaseClient
+          .from('blog_reactions')
+          .select()
+          .eq('blog_id', blogId)
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      // If they clicked the same reaction again, remove it (toggle off)
+
+      if (existingReaction != null &&
+          existingReaction['reaction_type'] == reactionType) {
+        await supabaseClient
+            .from('blog_reactions')
+            .delete()
+            .eq('blog_id', blogId)
+            .eq('user_id', userId);
+      } else {
+        // Otherwise, insert or update to the new reaction type (upsert)
+
+        await supabaseClient.from('blog_reactions').upsert({
+          'blog_id': blogId,
+          'user_id': userId,
+          'reaction_type': reactionType,
+        }, onConflict: 'blog_id , user_id');
+      }
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  //get all reactions
+  @override
+  Future<List<ReactionModel>> getReactions(String blogId) async {
+    try {
+      final response = await supabaseClient
+          .from('blog_reactions')
+          .select()
+          .eq('blog_id', blogId);
+
+      return response.map((json) => ReactionModel.fromJson(json)).toList();
     } catch (e) {
       throw ServerException(message: e.toString());
     }

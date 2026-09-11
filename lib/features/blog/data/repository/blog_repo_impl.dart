@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:blog_app/core/common/network/connection_checker.dart';
 import 'package:blog_app/core/error/exception.dart';
 import 'package:blog_app/core/error/failures.dart';
@@ -7,6 +5,7 @@ import 'package:blog_app/features/blog/data/datasources/blog_local_datasource.da
 import 'package:blog_app/features/blog/data/datasources/blog_remote_datasources.dart';
 import 'package:blog_app/features/blog/data/models/blog_model.dart';
 import 'package:blog_app/features/blog/domain/entities/blog.dart';
+import 'package:blog_app/features/blog/domain/entities/reaction.dart';
 import 'package:blog_app/features/blog/domain/repository/blog_repo.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:image_picker/image_picker.dart';
@@ -21,6 +20,9 @@ class BlogRepoImpl implements BlogRepo {
     required this.blogLoaclDatasource,
     required this.connectionChecker,
   });
+
+  //--- Blog Section --- //
+
   @override
   Future<Either<Failures, Blog>> uploadBlog({
     required XFile image,
@@ -106,7 +108,6 @@ class BlogRepoImpl implements BlogRepo {
     required String existingImageUrl,
   }) async {
     try {
-      log('--- TRAP 2 (REPO): Image received is: ${image?.path} ---');
       String imageUrl = existingImageUrl;
 
       if (image != null) {
@@ -129,6 +130,50 @@ class BlogRepoImpl implements BlogRepo {
 
       final res = await blogRemoteDatasources.editBlog(updatedBlog);
       return right(res);
+    } on ServerException catch (e) {
+      return Left(Failures(e.message));
+    } catch (e) {
+      return Left(Failures(e.toString()));
+    }
+  }
+
+  //--- Reactions Section --- //
+
+  //get reaction
+
+  @override
+  Future<Either<Failures, List<Reaction>>> getReactions(String blogId) async {
+    try {
+      final reactions = await blogRemoteDatasources.getReactions(blogId);
+
+      return right(reactions);
+    } on ServerException catch (e) {
+      return Left(Failures(e.message));
+    } catch (e) {
+      return Left(Failures(e.toString()));
+    }
+  }
+
+  //update reaction
+
+  @override
+  Future<Either<Failures, void>> updateReaction({
+    required String blogId,
+    required String userId,
+    required String reactionType,
+  }) async {
+    try {
+      if (!await (connectionChecker.isConnected)) {
+        return left(Failures("No internet connection ...!"));
+      }
+
+      await blogRemoteDatasources.updateReaction(
+        blogId: blogId,
+        userId: userId,
+        reactionType: reactionType,
+      );
+
+      return right(null);
     } on ServerException catch (e) {
       return Left(Failures(e.message));
     } catch (e) {

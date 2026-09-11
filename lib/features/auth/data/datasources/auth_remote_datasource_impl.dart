@@ -23,7 +23,16 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       }
       return UserModel.fromJson(response.user!.toJson());
     } on AuthException catch (e) {
-      throw ServerException(message: e.message);
+      String uxFriendlyMessage = e.message;
+
+      if (e.message.contains('Invalid login credentials')) {
+        uxFriendlyMessage =
+            'Incorrect email or password If you haven\'t signed up an account yet, please sign up first!';
+      } else if (e.message.contains('rate_limit')) {
+        uxFriendlyMessage =
+            'Too many attempts. Please take a quick break and try again in a few minutes.';
+      }
+      throw ServerException(message: uxFriendlyMessage);
     } catch (e) {
       throw ServerException(message: e.toString());
     }

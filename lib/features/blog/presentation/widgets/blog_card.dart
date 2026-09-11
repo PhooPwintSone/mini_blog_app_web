@@ -3,6 +3,7 @@ import 'package:blog_app/core/theme/app_pallete.dart';
 import 'package:blog_app/core/utils/calaulate_real_reading_time.dart';
 import 'package:blog_app/features/blog/domain/entities/blog.dart';
 import 'package:blog_app/features/blog/presentation/pages/blog_viewer_page.dart';
+import 'package:blog_app/features/blog/presentation/widgets/reaction_button.dart';
 import 'package:flutter/material.dart';
 
 class BlogCard extends StatelessWidget {
@@ -144,6 +145,19 @@ class BlogCard extends StatelessWidget {
                             fontWeight: FontWeight.w300,
                           ),
                         ),
+                      ],
+                    ),
+                    //
+                    const SizedBox(height: 15),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        ReactionButton(blog: blog, type: 'love', emoji: '💖'),
+                        ReactionButton(blog: blog, type: 'haha', emoji: '😆'),
+                        ReactionButton(blog: blog, type: 'sad', emoji: '🥲'),
+                        ReactionButton(blog: blog, type: 'wow', emoji: '🙄'),
+                        ReactionButton(blog: blog, type: 'angry', emoji: '🤬'),
                       ],
                     ),
                   ],

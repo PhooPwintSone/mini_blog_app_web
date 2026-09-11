@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:blog_app/features/blog/domain/entities/reaction.dart';
+
 class Blog {
   final String id;
   final String userId;
@@ -8,6 +10,7 @@ class Blog {
   final List<String> categories;
   final DateTime updatedAt;
   final String userName;
+  final List<Reaction>? reactions;
 
   Blog({
     required this.id,
@@ -18,5 +21,6 @@ class Blog {
     required this.categories,
     required this.updatedAt,
     required this.userName,
+    this.reactions = const [],
   });
 }

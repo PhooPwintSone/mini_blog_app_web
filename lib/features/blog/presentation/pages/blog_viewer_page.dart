@@ -7,6 +7,7 @@ import 'package:blog_app/core/utils/datetime_format_helper.dart';
 import 'package:blog_app/features/blog/domain/entities/blog.dart';
 import 'package:blog_app/features/blog/presentation/bloc/blog_bloc.dart';
 import 'package:blog_app/features/blog/presentation/pages/add_new_blog_page.dart';
+import 'package:blog_app/features/blog/presentation/widgets/reaction_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -165,7 +166,52 @@ class BlogViewerPage extends StatelessWidget {
                     color: AppPallete.textColor,
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
+                BlocBuilder<BlogBloc, BlogState>(
+                  builder: (context, state) {
+                    Blog updatedBlog = blog;
+
+                    if (state is BlogDisplaySuccess) {
+                      final matchingBlogs = state.blogs.where(
+                        (b) => b.id == blog.id,
+                      );
+
+                      if (matchingBlogs.isNotEmpty) {
+                        updatedBlog = matchingBlogs.first;
+                      }
+                    }
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        ReactionButton(
+                          blog: updatedBlog,
+                          type: 'love',
+                          emoji: '💖',
+                        ),
+                        ReactionButton(
+                          blog: updatedBlog,
+                          type: 'haha',
+                          emoji: '😆',
+                        ),
+                        ReactionButton(
+                          blog: updatedBlog,
+                          type: 'sad',
+                          emoji: '🥲',
+                        ),
+                        ReactionButton(
+                          blog: updatedBlog,
+                          type: 'wow',
+                          emoji: '🙄',
+                        ),
+                        ReactionButton(
+                          blog: updatedBlog,
+                          type: 'angry',
+                          emoji: '🤬',
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           ),
