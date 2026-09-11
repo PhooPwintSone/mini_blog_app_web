@@ -137,6 +137,26 @@ class BlogRepoImpl implements BlogRepo {
     }
   }
 
+  //get user blogs
+  @override
+  Future<Either<Failures, List<Blog>>> getUserBlogs({
+    required String userId,
+  }) async {
+    try {
+      if (!await (connectionChecker.isConnected)) {
+        return left(Failures("No internet connection ...!"));
+      }
+
+      final blogs = await blogRemoteDatasources.getUserBlogs(userId: userId);
+
+      return right(blogs);
+    } on ServerException catch (e) {
+      return Left(Failures(e.message));
+    } catch (e) {
+      return Left(Failures(e.toString()));
+    }
+  }
+
   //--- Reactions Section --- //
 
   //get reaction

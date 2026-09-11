@@ -45,13 +45,7 @@ class _SigninPageState extends State<SigninPage> {
         child: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
             if (state is AuthFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message.toString()),
-                  backgroundColor: AppPallete.errorColor, // Make it pop!
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              showSnackBar(context, state.message.toString());
             } else if (state is AuthSuccess) {
               Navigator.pushAndRemoveUntil(
                 context,

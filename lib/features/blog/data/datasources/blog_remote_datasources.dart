@@ -25,6 +25,9 @@ abstract interface class BlogRemoteDatasources {
     required String blogId,
   });
 
+  //getuserBlogs
+  Future<List<BlogModel>> getUserBlogs({required String userId});
+
   //---- Reactions ---- //
 
   //for update reactions

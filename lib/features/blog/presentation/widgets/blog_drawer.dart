@@ -2,7 +2,9 @@ import 'package:blog_app/bloc/auth_bloc.dart';
 import 'package:blog_app/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:blog_app/core/common/widgets/loader.dart';
 import 'package:blog_app/core/theme/app_pallete.dart';
+import 'package:blog_app/features/blog/presentation/bloc/blog_bloc.dart';
 import 'package:blog_app/features/blog/presentation/pages/add_new_blog_page.dart';
+import 'package:blog_app/features/blog/presentation/pages/user_own_blog_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -56,6 +58,24 @@ class BlogDrawer extends StatelessWidget {
             title: const Text('Create New Blog'),
             onTap: () {
               Navigator.push(context, AddNewBlogPage.route());
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(
+              Icons.feed,
+              color: AppPallete.gradient2,
+              size: 26,
+            ),
+            title: const Text('My Blogs'),
+            onTap: () {
+              Navigator.pop(context);
+
+              final blogBloc = context.read<BlogBloc>();
+              Navigator.push(context, UserOwnBlogPage.route()).then((_) {
+                // When the user presses the back button to return here, refresh the feed!
+                blogBloc.add(BlogGetAllBlogs());
+              });
             },
           ),
 

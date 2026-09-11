@@ -53,6 +53,12 @@ final class BlogEditEvent extends BlogEvent {
 
 class BlogLoadMoreBlogs extends BlogEvent {}
 
+class BlogGetUserBlogs extends BlogEvent {
+  final String userId;
+
+  BlogGetUserBlogs({required this.userId});
+}
+
 //---- REactions Section ----//
 
 class BlogUpdateReaction extends BlogEvent {

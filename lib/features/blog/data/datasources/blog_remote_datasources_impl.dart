@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:blog_app/core/error/exception.dart';
@@ -37,7 +36,6 @@ class BlogRemoteDatasourcesImpl implements BlogRemoteDatasources {
     required BlogModel blog,
   }) async {
     try {
-      // ✅ Add the platform-safe check here too!
       if (kIsWeb) {
         final bytes = await image.readAsBytes();
         await supabaseClient.storage
@@ -67,7 +65,6 @@ class BlogRemoteDatasourcesImpl implements BlogRemoteDatasources {
           .select('*,profiles(name), blog_reactions(*)')
           .order('updated_at', ascending: false)
           .range(from, to);
-      log('🔴 SUPABASE RAW DATA: ${blogs[0]['blog_reactions']}');
       return blogs
           .map(
             (e) =>
@@ -125,7 +122,6 @@ class BlogRemoteDatasourcesImpl implements BlogRemoteDatasources {
     required String blogId,
   }) async {
     try {
-      log('--- TRAP 3 (DATASOURCE): Starting Supabase upload... ---');
       if (kIsWeb) {
         final bytes = await image.readAsBytes();
         await supabaseClient.storage
@@ -148,6 +144,21 @@ class BlogRemoteDatasourcesImpl implements BlogRemoteDatasources {
     }
   }
 
+  //get user blogs
+  @override
+  Future<List<BlogModel>> getUserBlogs({required String userId}) async {
+    try {
+      final response = await supabaseClient
+          .from('blogs')
+          .select('*, profiles (name), blog_reactions (*)')
+          .eq('user_id', userId)
+          .order('updated_at', ascending: false);
+
+      return response.map((json) => BlogModel.fromJson(json)).toList();
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
   // --- Reactions Section --- //
 
   //update reactions

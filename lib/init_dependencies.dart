@@ -20,6 +20,7 @@ import 'package:blog_app/features/blog/domain/repository/blog_repo.dart';
 import 'package:blog_app/features/blog/domain/usecases/delete_blog.dart';
 import 'package:blog_app/features/blog/domain/usecases/edit_blog.dart';
 import 'package:blog_app/features/blog/domain/usecases/get_all_blogs.dart';
+import 'package:blog_app/features/blog/domain/usecases/get_user_blogs.dart';
 import 'package:blog_app/features/blog/domain/usecases/update_reaction.dart';
 import 'package:blog_app/features/blog/domain/usecases/upload_blog_usecase.dart';
 import 'package:blog_app/features/blog/presentation/bloc/blog_bloc.dart';
@@ -136,6 +137,9 @@ void _initBlog() {
     ..registerFactory<UpdateReaction>(
       () => UpdateReaction(blogRepo: serviceLocator<BlogRepo>()),
     )
+    ..registerFactory<GetUserBlogs>(
+      () => GetUserBlogs(blogRepo: serviceLocator<BlogRepo>()),
+    )
     // BLoC
     ..registerLazySingleton(
       () => BlogBloc(
@@ -145,6 +149,7 @@ void _initBlog() {
         editBlog: serviceLocator<EditBlog>(),
 
         updateReaction: serviceLocator<UpdateReaction>(),
+        getUserBlogs: serviceLocator(),
       ),
     );
 }

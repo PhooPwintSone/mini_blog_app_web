@@ -32,6 +32,9 @@ abstract interface class BlogRepo {
     required String existingImageUrl,
   });
 
+  //get user blogs
+  Future<Either<Failures, List<Blog>>> getUserBlogs({required String userId});
+
   //--- Reactions Section --- //
 
   //update reaction

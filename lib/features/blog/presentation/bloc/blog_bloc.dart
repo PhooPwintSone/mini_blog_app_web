@@ -1,7 +1,10 @@
+import 'dart:developer';
+
 import 'package:blog_app/features/blog/domain/entities/blog.dart';
 import 'package:blog_app/features/blog/domain/usecases/delete_blog.dart';
 import 'package:blog_app/features/blog/domain/usecases/edit_blog.dart';
 import 'package:blog_app/features/blog/domain/usecases/get_all_blogs.dart';
+import 'package:blog_app/features/blog/domain/usecases/get_user_blogs.dart';
 import 'package:blog_app/features/blog/domain/usecases/update_reaction.dart';
 import 'package:blog_app/features/blog/domain/usecases/upload_blog_usecase.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +20,7 @@ class BlogBloc extends Bloc<BlogEvent, BlogState> {
   final GetAllBlogs _getAllBlogs;
   final DeleteBlog _deleteBlog;
   final EditBlog _editBlog;
+  final GetUserBlogs _getUserBlogs;
   // Related to Pagination
   int _currentPage = 0;
   bool _isFetching = false;
@@ -30,6 +34,7 @@ class BlogBloc extends Bloc<BlogEvent, BlogState> {
     required this._deleteBlog,
     required this._editBlog,
     required this._updateReaction,
+    required this._getUserBlogs,
   }) : super(BlogInitial()) {
     // //loading state
     // on<BlogEvent>((event, emit) => emit(BlogLoading()) );
@@ -49,6 +54,9 @@ class BlogBloc extends Bloc<BlogEvent, BlogState> {
 
     //load more blogs
     on<BlogLoadMoreBlogs>(_onLoadMoreBlogs);
+
+    //get user blogs
+    on<BlogGetUserBlogs>(_onGetUserBlogs);
 
     //---- Reactions Section ----//
     on<BlogUpdateReaction>(_onUpdateReaction);
@@ -161,6 +169,20 @@ class BlogBloc extends Bloc<BlogEvent, BlogState> {
         );
       },
     );
+  }
+
+  //get user blogs
+  void _onGetUserBlogs(BlogGetUserBlogs event, Emitter<BlogState> emit) async {
+    emit(BlogLoading());
+
+    final res = await _getUserBlogs(GetUserBlogsParams(userId: event.userId));
+
+    res.fold((failure) => emit(BlogFailure(errorMessage: failure.message)), (
+      right,
+    ) {
+      log('Found ${right.length} blogs');
+      emit(BlogDisplaySuccess(blogs: right));
+    });
   }
 
   //---- Reactions Section ----//
